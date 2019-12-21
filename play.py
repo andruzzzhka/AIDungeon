@@ -8,12 +8,13 @@ from generator.gpt2.gpt2_generator import *
 from story import grammars
 from story.story_manager import *
 from story.utils import *
+from yandex.Translater import Translater
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
 
 def splash():
-    print("0) New Game\n1) Load Game\n")
+    print("0) Новая игра\n1) Загрузить игру\n")
     choice = get_num_options(2)
 
     if choice == 1:
@@ -53,7 +54,7 @@ def select_game():
         data = yaml.safe_load(stream)
 
     # Random story?
-    print("Random story?")
+    print("Случайная история?")
     console_print("0) yes")
     console_print("1) no")
     choice = get_num_options(2)
@@ -62,15 +63,15 @@ def select_game():
         return random_story(data)
 
     # User-selected story...
-    print("\n\nPick a setting.")
+    print("\n\nВыберите сеттинг.")
     settings = data["settings"].keys()
     for i, setting in enumerate(settings):
         print_str = str(i) + ") " + setting
         if setting == "fantasy":
-            print_str += " (recommended)"
+            print_str += " (рекомендуется)"
 
         console_print(print_str)
-    console_print(str(len(settings)) + ") custom")
+    console_print(str(len(settings)) + ") пользовательский")
     choice = get_num_options(len(settings) + 1)
 
     if choice == len(settings):
@@ -78,13 +79,13 @@ def select_game():
 
     setting_key = list(settings)[choice]
 
-    print("\nPick a character")
+    print("\nВыберите персонажа")
     characters = data["settings"][setting_key]["characters"]
     for i, character in enumerate(characters):
         console_print(str(i) + ") " + character)
     character_key = list(characters)[get_num_options(len(characters))]
 
-    name = input("\nWhat is your name? ")
+    name = input("\nКак тебя зовут? ")
     setting_description = data["settings"][setting_key]["description"]
     character = data["settings"][setting_key]["characters"][character_key]
 
@@ -164,7 +165,7 @@ def play_aidungeon_2():
 
     upload_story = True
 
-    print("\nInitializing AI Dungeon! (This might take a few minutes)\n")
+    print("\AI Dungeon инициализируется! (Это может заняять несколько минут)\n")
     generator = GPT2Generator()
     story_manager = UnconstrainedStoryManager(generator)
     print("\n")
@@ -200,7 +201,7 @@ def play_aidungeon_2():
                     )
 
                 console_print(instructions())
-                print("\nGenerating story...")
+                print("\nГенерируем историю...")
 
                 result = story_manager.start_new_story(
                     prompt, context=context, upload_story=upload_story
@@ -209,11 +210,11 @@ def play_aidungeon_2():
                 console_print(result)
 
             else:
-                load_ID = input("What is the ID of the saved game? ")
+                load_ID = input("Введите ID сохраненной игры: ")
                 result = story_manager.load_new_story(
                     load_ID, upload_story=upload_story
                 )
-                print("\nLoading Game...\n")
+                print("\nЗагрузкка игры...\n")
                 console_print(result)
 
         while True:
@@ -230,7 +231,7 @@ def play_aidungeon_2():
                 elif command == "restart":
                     story_manager.story.actions = []
                     story_manager.story.results = []
-                    console_print("Game restarted.")
+                    console_print("Игра перезапущена.")
                     console_print(story_manager.story.story_start)
                     continue
 
@@ -241,7 +242,7 @@ def play_aidungeon_2():
                 elif command == "nosaving":
                     upload_story = False
                     story_manager.story.upload_story = False
-                    console_print("Saving turned off.")
+                    console_print("Сохранения выключены.")
 
                 elif command == "help":
                     console_print(instructions())
@@ -249,22 +250,22 @@ def play_aidungeon_2():
                 elif command == "censor":
                     if len(args) == 0:
                         if generator.censor:
-                            console_print("Censor is enabled.")
+                            console_print("Цензура включена.")
                         else:
-                            console_print("Censor is disabled.")
+                            console_print("Цензура выключена.")
                     elif args[0] == "off":
                         if not generator.censor:
-                            console_print("Censor is already disabled.")
+                            console_print("Цензура уже выключена.")
                         else:
                             generator.censor = False
-                            console_print("Censor is now disabled.")
+                            console_print("Цензура теперь выключена.")
 
                     elif args[0] == "on":
                         if generator.censor:
-                            console_print("Censor is already enabled.")
+                            console_print("Цензура уже включена.")
                         else:
                             generator.censor = True
-                            console_print("Censor is now enabled.")
+                            console_print("Цензура теперь включена.")
 
                     else:
                         console_print(f"Invalid argument: {args[0]}")
@@ -272,34 +273,34 @@ def play_aidungeon_2():
                 elif command == "save":
                     if upload_story:
                         id = story_manager.story.save_to_storage()
-                        console_print("Game saved.")
+                        console_print("Игра сохранена.")
                         console_print(
                             f"To load the game, type 'load' and enter the following ID: {id}"
                         )
                     else:
-                        console_print("Saving has been turned off. Cannot save.")
+                        console_print("Сахранения были выключены. Сохранение невозможно.")
 
                 elif command == "load":
                     if len(args) == 0:
-                        load_ID = input("What is the ID of the saved game?")
+                        load_ID = input("Введите ID сохраненной игры: ")
                     else:
                         load_ID = args[0]
                     result = story_manager.story.load_from_storage(load_ID)
-                    console_print("\nLoading Game...\n")
+                    console_print("\nЗагрузка игры...\n")
                     console_print(result)
 
                 elif command == "print":
-                    print("\nPRINTING\n")
+                    print("\nПЕЧАТЬ\n")
                     print(str(story_manager.story))
 
                 elif command == "revert":
                     if len(story_manager.story.actions) == 0:
-                        console_print("You can't go back any farther. ")
+                        console_print("Невозможно откатиться дальше. ")
                         continue
 
                     story_manager.story.actions = story_manager.story.actions[:-1]
                     story_manager.story.results = story_manager.story.results[:-1]
-                    console_print("Last action reverted. ")
+                    console_print("Последнее действие отменено. ")
                     if len(story_manager.story.results) > 0:
                         console_print(story_manager.story.results[-1])
                     else:
@@ -307,9 +308,13 @@ def play_aidungeon_2():
                     continue
 
                 else:
-                    console_print(f"Unknown command: {command}")
+                    console_print(f"Неизвестная команда: {command}")
 
             else:
+                #TODO: integrate translate service for action
+                ru2en_translater.set_text(action)
+                action = ru2en_translater.translate()
+                
                 if action == "":
                     action = ""
                     result = story_manager.act(action)
@@ -341,34 +346,45 @@ def play_aidungeon_2():
                         story_manager.story.actions = story_manager.story.actions[:-1]
                         story_manager.story.results = story_manager.story.results[:-1]
                         console_print(
-                            "Woops that action caused the model to start looping. Try a different action to prevent that."
+                            "Упс, это действие заставило моджель зациклиться. Попробуйте другое действие, чтобы предотвратить это."
                         )
                         continue
 
+                en2ru_translater.set_text(result)
+                result_translated = en2ru_translater.translate()
+                    
                 if player_won(result):
-                    console_print(result + "\n CONGRATS YOU WIN")
+                    console_print(result_translated + "\n ПОЗДРАВЛЯЕМ, ВЫ ВЫИГРАЛИ!")
                     story_manager.story.get_rating()
                     break
                 elif player_died(result):
-                    console_print(result)
-                    console_print("YOU DIED. GAME OVER")
-                    console_print("\nOptions:")
-                    console_print("0) Start a new game")
+                    console_print(result_translated)
+                    console_print("ВЫ МЕРТВЫ. ИГРА ОКОНЧЕНА.")
+                    console_print("\nВарианты:")
+                    console_print("0) Начать новую игру")
                     console_print(
-                        "1) \"I'm not dead yet!\" (If you didn't actually die) "
+                        "1) \"Я еще не мертв!\" (Если вы на самом деле не умерли) "
                     )
-                    console_print("Which do you choose? ")
+                    console_print("Что вы выберете? ")
                     choice = get_num_options(2)
                     if choice == 0:
                         story_manager.story.get_rating()
                         break
                     else:
-                        console_print("Sorry about that...where were we?")
-                        console_print(result)
+                        console_print("Просим прощения за это...где мы остановились?")
+                        console_print(result_translated)
 
                 else:
-                    console_print(result)
+                    console_print(result_translated)
 
 
 if __name__ == "__main__":
+    en2ru_translater = Translater()
+    en2ru_translater.set_key('trnsl.1.1.20191221T132738Z.ce24f6e04f104acd.8dca043ad5c5915127390b1fa5e8964596697c35')
+    en2ru_translater.set_from_lang('en')
+    en2ru_translater.set_to_lang('ru')
+    ru2en_translater = Translater()
+    ru2en_translater.set_key('trnsl.1.1.20191221T132738Z.ce24f6e04f104acd.8dca043ad5c5915127390b1fa5e8964596697c35')
+    ru2en_translater.set_from_lang('ru')
+    ru2en_translater.set_to_lang('en')
     play_aidungeon_2()

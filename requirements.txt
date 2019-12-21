@@ -1,4 +1,5 @@
 google-cloud-storage
+yandex-translater
 gsutil
 numpy
 profanityfilter
