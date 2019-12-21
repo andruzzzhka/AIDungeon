@@ -55,8 +55,8 @@ def select_game():
 
     # Random story?
     print("Случайная история?")
-    console_print("0) yes")
-    console_print("1) no")
+    console_print("0) да")
+    console_print("1) нет")
     choice = get_num_options(2)
 
     if choice == 0:
@@ -139,19 +139,19 @@ def get_curated_exposition(
 
 
 def instructions():
-    text = "\nAI Dungeon 2 Instructions:"
-    text += '\n Enter actions starting with a verb ex. "go to the tavern" or "attack the orc."'
-    text += '\n To speak enter \'say "(thing you want to say)"\' or just "(thing you want to say)" '
-    text += "\n\nThe following commands can be entered for any action: "
-    text += '\n  "/revert"   Reverts the last action allowing you to pick a different action.'
-    text += '\n  "/quit"     Quits the game and saves'
-    text += '\n  "/reset"    Starts a new game and saves your current one'
-    text += '\n  "/restart"  Starts the game from beginning with same settings'
-    text += '\n  "/save"     Makes a new save of your game and gives you the save ID'
-    text += '\n  "/load"     Asks for a save ID and loads the game if the ID is valid'
-    text += '\n  "/print"    Prints a transcript of your adventure (without extra newline formatting)'
-    text += '\n  "/help"     Prints these instructions again'
-    text += '\n  "/censor off/on" to turn censoring off or on.'
+    text = "\nИнструкция к AI Dungeon 2:"
+    text += '\n Вводите действия, которые начинаются с глаголов, например "идти в таверну" или "атаковать орка"'
+    text += '\n Чтобы говорить, введите \'сказать "(то, что вы хотите сказать)"\' или просто "(то, что вы хотите сказать)" '
+    text += "\n\nСледующие команды могут быть введены вместо любого действия: "
+    text += '\n  "/revert"   Отменяет последнее действие и позволяет переиграть его.'
+    text += '\n  "/quit"     Сохраняет и закрывает игру'
+    text += '\n  "/reset"    Сохраняет текущую игру и начинает новую'
+    text += '\n  "/restart"  Начинает игру сначала с теми же настройками'
+    text += '\n  "/save"     Создает новое сохранение и выводит его ID'
+    text += '\n  "/load"     Спрашивает ID сохранения и загружает его, если оно существует'
+    text += '\n  "/print"    Печатает расшифровку всего путешествия (без дополнительного форматирования пустыми строками)'
+    text += '\n  "/help"     Печатает эту инструкцию'
+    text += '\n  "/censor off/on" Включает//выключает цензуру.'
     return text
 
 
@@ -165,7 +165,7 @@ def play_aidungeon_2():
 
     upload_story = True
 
-    print("\AI Dungeon инициализируется! (Это может заняять несколько минут)\n")
+    print("\nAI Dungeon инициализируется! (Это может заняять несколько минут)\n")
     generator = GPT2Generator()
     story_manager = UnconstrainedStoryManager(generator)
     print("\n")
@@ -207,7 +207,9 @@ def play_aidungeon_2():
                     prompt, context=context, upload_story=upload_story
                 )
                 print("\n")
-                console_print(result)
+                en2ru_translater.set_text(result)
+                result_translated = en2ru_translater.translate()
+                console_print(result_translated)
 
             else:
                 load_ID = input("Введите ID сохраненной игры: ")
@@ -215,7 +217,9 @@ def play_aidungeon_2():
                     load_ID, upload_story=upload_story
                 )
                 print("\nЗагрузкка игры...\n")
-                console_print(result)
+                en2ru_translater.set_text(result)
+                result_translated = en2ru_translater.translate()
+                console_print(result_translated)
 
         while True:
             sys.stdin.flush()
@@ -232,7 +236,9 @@ def play_aidungeon_2():
                     story_manager.story.actions = []
                     story_manager.story.results = []
                     console_print("Игра перезапущена.")
-                    console_print(story_manager.story.story_start)
+                    en2ru_translater.set_text(story_manager.story.story_start)
+                    result_translated = en2ru_translater.translate()
+                    console_print(result_translated)
                     continue
 
                 elif command == "quit":
@@ -275,10 +281,10 @@ def play_aidungeon_2():
                         id = story_manager.story.save_to_storage()
                         console_print("Игра сохранена.")
                         console_print(
-                            f"To load the game, type 'load' and enter the following ID: {id}"
+                            f"Чтобы загрузить игру, введите 'load', а затем введите этот ID: {id}"
                         )
                     else:
-                        console_print("Сахранения были выключены. Сохранение невозможно.")
+                        console_print("Сохранения были выключены. Сохранение невозможно.")
 
                 elif command == "load":
                     if len(args) == 0:
@@ -287,7 +293,9 @@ def play_aidungeon_2():
                         load_ID = args[0]
                     result = story_manager.story.load_from_storage(load_ID)
                     console_print("\nЗагрузка игры...\n")
-                    console_print(result)
+                    en2ru_translater.set_text(result)
+                    result_translated = en2ru_translater.translate()
+                    console_print(result_translated)
 
                 elif command == "print":
                     print("\nПЕЧАТЬ\n")
@@ -302,23 +310,28 @@ def play_aidungeon_2():
                     story_manager.story.results = story_manager.story.results[:-1]
                     console_print("Последнее действие отменено. ")
                     if len(story_manager.story.results) > 0:
-                        console_print(story_manager.story.results[-1])
+                        en2ru_translater.set_text(story_manager.story.results[-1])
+                        result_translated = en2ru_translater.translate()
+                        console_print(result_translated)
                     else:
-                        console_print(story_manager.story.story_start)
+                        en2ru_translater.set_text(story_manager.story.story_start)
+                        result_translated = en2ru_translater.translate()
+                        console_print(result_translated)
                     continue
 
                 else:
                     console_print(f"Неизвестная команда: {command}")
 
             else:
-                #TODO: integrate translate service for action
                 ru2en_translater.set_text(action)
                 action = ru2en_translater.translate()
                 
                 if action == "":
                     action = ""
                     result = story_manager.act(action)
-                    console_print(result)
+                    en2ru_translater.set_text(result)
+                    result_translated = en2ru_translater.translate()
+                    console_print(result_translated)
 
                 elif action[0] == '"':
                     action = "You say " + action
