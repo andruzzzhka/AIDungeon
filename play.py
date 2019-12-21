@@ -165,7 +165,7 @@ def play_aidungeon_2():
 
     upload_story = True
 
-    print("\nAI Dungeon инициализируется! (Это может заняять несколько минут)\n")
+    print("\nAI Dungeon инициализируется! (Это может занять несколько минут)\n")
     generator = GPT2Generator()
     story_manager = UnconstrainedStoryManager(generator)
     print("\n")
