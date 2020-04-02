@@ -8,12 +8,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Formal grammars for apocalyptic setting: scavenger, mutant and headhunter contexts/prompts
+- 'Finetune the model yourself' section in README.md
+- Command line argument `--cpu` which forces use of the CPU instead of a GPU.
+
+### Fixed
+
+- `install.sh` will only use `sudo` if the user is not root
+- Fix loading saved games from the title splash to use the new local save path.
+- Fix ending punctuation being chopped off of generated text.
+
+## [2.2.0] - 2019-12-19
+
+### Added
+
 - `/reset` is a new command with the same functionality as the
 old `/restart`, saving the old and beginning a brand new game.
 - Ratings after death and winning
 - `get_rating` function to `Story` objects.
-- Some new word to fantasy grammar.
+- New content in fantasy grammar.
 - Formal grammars for peasant and rogue contexts/prompts.
+
+### Removed
+
+- F-strings for python 3.4 and 3.5 compatibility
+- Trailing comma in function args for 3.5 compatibility
 
 ### Fixed
 

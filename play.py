@@ -3,6 +3,7 @@ import os
 import random
 import sys
 import time
+import argparse
 
 from generator.gpt2.gpt2_generator import *
 from story import grammars
@@ -11,6 +12,13 @@ from story.utils import *
 from yandex.Translater import Translater
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+
+parser = argparse.ArgumentParser("Play AIDungeon 2")
+parser.add_argument(
+    "--cpu",
+    action="store_true",
+    help="Force using CPU instead of GPU."
+)
 
 
 def splash():
@@ -27,13 +35,11 @@ def random_story(story_data):
     # random setting
     settings = story_data["settings"].keys()
     n_settings = len(settings)
+    n_settings = 2
     rand_n = random.randint(0, n_settings - 1)
     for i, setting in enumerate(settings):
         if i == rand_n:
             setting_key = setting
-
-    # temporarily only available in fantasy
-    setting_key = "fantasy"
 
     # random character
     characters = story_data["settings"][setting_key]["characters"]
@@ -44,7 +50,7 @@ def random_story(story_data):
             character_key = character
 
     # random name
-    name = grammars.direct(setting_key, "fantasy_name")
+    name = grammars.direct(setting_key, "character_name")
 
     return setting_key, character_key, name, None, None
 
@@ -107,18 +113,12 @@ def get_curated_exposition(
     setting_key, character_key, name, character, setting_description
 ):
     name_token = "<NAME>"
-    if (
-        character_key == "noble"
-        or character_key == "knight"
-        or character_key == "wizard"
-        or character_key == "peasant"
-        or character_key == "rogue"
-    ):
+    try:
         context = grammars.generate(setting_key, character_key, "context") + "\n\n"
         context = context.replace(name_token, name)
         prompt = grammars.generate(setting_key, character_key, "prompt")
         prompt = prompt.replace(name_token, name)
-    else:
+    except:
         context = (
             "You are "
             + name
@@ -155,7 +155,14 @@ def instructions():
     return text
 
 
-def play_aidungeon_2():
+def play_aidungeon_2(args):
+    """
+    Entry/main function for starting AIDungeon 2
+
+    Arguments:
+        args (namespace): Arguments returned by the
+                          ArgumentParser
+    """
 
     console_print(
         "AI Dungeon 2 will save and use your actions and game to continually improve AI Dungeon."
@@ -166,7 +173,7 @@ def play_aidungeon_2():
     upload_story = True
 
     print("\nAI Dungeon инициализируется! (Это может занять несколько минут)\n")
-    generator = GPT2Generator()
+    generator = GPT2Generator(force_cpu=args.cpu)
     story_manager = UnconstrainedStoryManager(generator)
     print("\n")
 
@@ -274,14 +281,14 @@ def play_aidungeon_2():
                             console_print("Цензура теперь включена.")
 
                     else:
-                        console_print(f"Invalid argument: {args[0]}")
+                        console_print("Invalid argument: {}".format(args[0]))
 
                 elif command == "save":
                     if upload_story:
                         id = story_manager.story.save_to_storage()
                         console_print("Игра сохранена.")
                         console_print(
-                            f"Чтобы загрузить игру, введите 'load', а затем введите этот ID: {id}"
+                            f"Чтобы загрузить игру, введите 'load', а затем введите этот ID: {}".format(id)
                         )
                     else:
                         console_print("Сохранения были выключены. Сохранение невозможно.")
@@ -400,4 +407,5 @@ if __name__ == "__main__":
     ru2en_translater.set_key('trnsl.1.1.20191221T132738Z.ce24f6e04f104acd.8dca043ad5c5915127390b1fa5e8964596697c35')
     ru2en_translater.set_from_lang('ru')
     ru2en_translater.set_to_lang('en')
-    play_aidungeon_2()
+    args = parser.parse_args()
+    play_aidungeon_2(args)
